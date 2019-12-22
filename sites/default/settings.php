@@ -229,15 +229,29 @@ $databases = [];
 /**
  * Location of the site configuration files.
  *
- * The $settings['config_sync_directory'] specifies the location of file system
- * directory used for syncing configuration data. On install, the directory is
- * created. This is used for configuration imports.
+ * The $config_directories array specifies the location of file system
+ * directories used for configuration data. On install, the "sync" directory is
+ * created. This is used for configuration imports. The "active" directory is
+ * not created by default since the default storage for active configuration is
+ * the database rather than the file system. (This can be changed. See "Active
+ * configuration settings" below).
  *
- * The default location for this directory is inside a randomly-named
- * directory in the public files path. The setting below allows you to set
- * its location.
+ * The default location for the "sync" directory is inside a randomly-named
+ * directory in the public files path. The setting below allows you to override
+ * the "sync" location.
+ *
+ * If you use files for the "active" configuration, you can tell the
+ * Configuration system where this directory is located by adding an entry with
+ * array key CONFIG_ACTIVE_DIRECTORY.
+ *
+ * Example:
+ * @code
+ *   $config_directories = [
+ *     CONFIG_SYNC_DIRECTORY => '/directory/outside/webroot',
+ *   ];
+ * @endcode
  */
-# $settings['config_sync_directory'] = '/directory/outside/webroot';
+$config_directories = [];
 
 /**
  * Settings:
@@ -266,7 +280,7 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = 'FFnKPY1KUFW6rmuPoG5sliG_dmrJNcGpvpe8VMag9_2py-eBVfSqHEx6eYKAyBeyTm_S1WIBVw';
+$settings['hash_salt'] = 'ierjnveirnvhfheru7774uhjcnw88w88383838jdjnnd7h7h7ghg6g64434333whddnoijr99';
 
 /**
  * Deployment identifier.
@@ -523,19 +537,6 @@ if ($settings['hash_salt']) {
 # $settings['file_private_path'] = '';
 
 /**
- * Temporary file path:
- *
- * A local file system path where temporary files will be stored. This directory
- * must be absolute, outside of the Drupal installation directory and not
- * accessible over the web.
- *
- * If this is not set, the default for the operating system will be used.
- *
- * @see \Drupal\Component\FileSystem\FileSystem::getOsTemporaryDirectory()
- */
-# $settings['file_temp_path'] = '/tmp';
-
-/**
  * Session write interval:
  *
  * Set the minimum interval between each session write to database.
@@ -596,6 +597,25 @@ if ($settings['hash_salt']) {
 # ini_set('pcre.recursion_limit', 200000);
 
 /**
+ * Active configuration settings.
+ *
+ * By default, the active configuration is stored in the database in the
+ * {config} table. To use a different storage mechanism for the active
+ * configuration, do the following prior to installing:
+ * - Create an "active" directory and declare its path in $config_directories
+ *   as explained under the 'Location of the site configuration files' section
+ *   above in this file. To enhance security, you can declare a path that is
+ *   outside your document root.
+ * - Override the 'bootstrap_config_storage' setting here. It must be set to a
+ *   callable that returns an object that implements
+ *   \Drupal\Core\Config\StorageInterface.
+ * - Override the service definition 'config.storage.active'. Put this
+ *   override in a services.yml file in the same directory as settings.php
+ *   (definitions in this file will override service definition defaults).
+ */
+# $settings['bootstrap_config_storage'] = ['Drupal\Core\Config\BootstrapConfigStorageFactory', 'getFileStorage'];
+
+/**
  * Configuration overrides.
  *
  * To globally override specific configuration values for this site,
@@ -617,7 +637,9 @@ if ($settings['hash_salt']) {
  * configuration values in settings.php will not fire any of the configuration
  * change events.
  */
+# $config['system.file']['path']['temporary'] = '/tmp';
 # $config['system.site']['name'] = 'My Drupal site';
+# $config['system.theme']['default'] = 'stark';
 # $config['user.settings']['anonymous'] = 'Visitor';
 
 /**
@@ -645,7 +667,7 @@ if ($settings['hash_salt']) {
  */
 # $config['system.performance']['fast_404']['exclude_paths'] = '/\/(?:styles)|(?:system\/files)\//';
 # $config['system.performance']['fast_404']['paths'] = '/\.(?:txt|png|gif|jpe?g|css|js|ico|swf|flv|cgi|bat|pl|dll|exe|asp)$/i';
-# $config['system.performance']['fast_404']['html'] = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
+# $config['system.performance']['fast_404']['html'] = '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
 
 /**
  * Load services definition file.
@@ -714,12 +736,12 @@ $settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
  * with common frontend tools and recursive scanning of directories looking for
  * extensions.
  *
- * @see \Drupal\Core\File\FileSystemInterface::scanDirectory()
+ * @see file_scan_directory()
  * @see \Drupal\Core\Extension\ExtensionDiscovery::scanDirectory()
  */
 $settings['file_scan_ignore_directories'] = [
-  'node_modules',
-  'bower_components',
+    'node_modules',
+    'bower_components',
 ];
 
 /**
@@ -741,6 +763,14 @@ $settings['entity_update_batch_size'] = 50;
  */
 $settings['entity_update_backup'] = TRUE;
 
+
+
+/**
+ * Enable local development services.
+ */
+$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
+
+
 /**
  * Load local development override configuration, if available.
  *
@@ -751,18 +781,7 @@ $settings['entity_update_backup'] = TRUE;
  *
  * Keep this code block at the end of this file to take full effect.
  */
-#
-# if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-#   include $app_root . '/' . $site_path . '/settings.local.php';
-# }
-$databases['default']['default'] = array (
-  'database' => 'lozin_stage',
-  'username' => 'lozin_stage',
-  'password' => '8pS9Ucw9(-',
-  'prefix' => 'drwn_',
-  'host' => 'localhost',
-  'port' => '3306',
-  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
-  'driver' => 'mysql',
-);
-$settings['config_sync_directory'] = 'sites/default/files/config_acWeNUW_Tzm7yqwfjKjHH9gmPFtZ2CkCCANUK6sPnaINO2JXUYS4J2RwGec66Y9qiWGKb_SXjQ/sync';
+
+if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+    include $app_root . '/' . $site_path . '/settings.local.php';
+}
