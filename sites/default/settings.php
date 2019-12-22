@@ -266,7 +266,7 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = 'L3pp8jxQrj51jvvTM28K6z79u9oJa2kWfvaZlMG9aL6r5sONBfnDzUcsUTAdyikUqYpewPmFlw';
+$settings['hash_salt'] = 'FFnKPY1KUFW6rmuPoG5sliG_dmrJNcGpvpe8VMag9_2py-eBVfSqHEx6eYKAyBeyTm_S1WIBVw';
 
 /**
  * Deployment identifier.
@@ -645,7 +645,7 @@ if ($settings['hash_salt']) {
  */
 # $config['system.performance']['fast_404']['exclude_paths'] = '/\/(?:styles)|(?:system\/files)\//';
 # $config['system.performance']['fast_404']['paths'] = '/\.(?:txt|png|gif|jpe?g|css|js|ico|swf|flv|cgi|bat|pl|dll|exe|asp)$/i';
-# $config['system.performance']['fast_404']['html'] = '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
+# $config['system.performance']['fast_404']['html'] = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
 
 /**
  * Load services definition file.
@@ -756,10 +756,10 @@ $settings['entity_update_backup'] = TRUE;
 #   include $app_root . '/' . $site_path . '/settings.local.php';
 # }
 $databases['default']['default'] = array (
-  'database' => 'lozin',
-  'username' => 'root',
-  'password' => 'root',
-  'prefix' => '',
+  'database' => 'lozin_stage',
+  'username' => 'lozin_stage',
+  'password' => '8pS9Ucw9(-',
+  'prefix' => 'drwn_',
   'host' => 'localhost',
   'port' => '3306',
   'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
